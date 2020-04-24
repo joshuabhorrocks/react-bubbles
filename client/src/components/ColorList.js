@@ -8,15 +8,14 @@ const initialColor = {
 };
 
 const ColorList = ({ colors, updateColors }) => {
-  console.log(colors);
+  // console.log(colors);
   const [editing, setEditing] = useState(false);
   const [colorToEdit, setColorToEdit] = useState(initialColor);
-  const { push } = useHistory()
 
   const editColor = color => {
     setEditing(true);
     setColorToEdit(color);
-    console.log("Color.id: ", color.id)
+    // console.log("Color.id: ", color.id)
   };
 
   const saveEdit = e => {
@@ -35,13 +34,23 @@ const ColorList = ({ colors, updateColors }) => {
     axiosWithAuth()
       .delete(`/api/colors/${color.id}`, color)
       .then(res => {
-        console.log("Delete Succeeded: ", res)
-        const newList = colors.filter(color => color.id !== color.id ? color : color)
-        updateColors(newList);
-        push(`/bubblepage`)
+        // console.log("Delete Succeeded: ", res)
+        const newList = colors.filter(color => color.id !== res.data.id)
+        rerender(newList);
+        // console.log("newList: ", newList)
       })
       .catch(err => console.log("Delete Failed: ", err))
   };
+
+  const rerender = () => {
+    axiosWithAuth()
+      .get("/api/colors")
+      .then(res => {
+        // console.log("Rerender res: ", res)
+        updateColors(res.data);
+      })
+      .catch(err => console.log("Rerender Failed: ", err))
+  }
 
   return (
     <div className="colors-wrap">
