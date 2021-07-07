@@ -1,31 +1,56 @@
 import React, { useState } from "react";
-import axios from "axios";
+import {axiosWithAuth} from "../utils/axiosWithAuth";
 
 const initialColor = {
   color: "",
-  code: { hex: "" }
+  code: { hex: "" },
+  id: ""
 };
 
 const ColorList = ({ colors, updateColors }) => {
-  console.log(colors);
+  // console.log(colors);
   const [editing, setEditing] = useState(false);
   const [colorToEdit, setColorToEdit] = useState(initialColor);
 
   const editColor = color => {
     setEditing(true);
     setColorToEdit(color);
+    // console.log("Color.id: ", color.id)
   };
 
   const saveEdit = e => {
     e.preventDefault();
-    // Make a put request to save your updated color
-    // think about where will you get the id from...
-    // where is is saved right now?
+    axiosWithAuth()
+      .put(`/api/colors/${colorToEdit.id}`, colorToEdit)
+      .then(res => {
+        console.log("Put Succeeded: ", res)
+        const newList = colors.map(color => color.id === colorToEdit.id ? colorToEdit : color)
+        updateColors(newList);
+      })
+      .catch(err => console.log("Put Failed: ", err))
   };
 
   const deleteColor = color => {
-    // make a delete request to delete this color
+    axiosWithAuth()
+      .delete(`/api/colors/${color.id}`, color)
+      .then(res => {
+        // console.log("Delete Succeeded: ", res)
+        const newList = colors.filter(color => color.id !== res.data.id)
+        rerender(newList);
+        // console.log("newList: ", newList)
+      })
+      .catch(err => console.log("Delete Failed: ", err))
   };
+
+  const rerender = () => {
+    axiosWithAuth()
+      .get("/api/colors")
+      .then(res => {
+        // console.log("Rerender res: ", res)
+        updateColors(res.data);
+      })
+      .catch(err => console.log("Rerender Failed: ", err))
+  }
 
   return (
     <div className="colors-wrap">
